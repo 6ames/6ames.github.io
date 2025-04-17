@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>6ames - AI Coding Challenge</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400..900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #ADFF2F; /* GreenYellow */
+            --secondary-color: #DC143C; /* Crimson */
+            --background-color: #121212;
+            --container-bg-color: rgba(30, 30, 30, 0.88);
+            --item-bg-color: rgba(45, 45, 45, 0.92);
+            --text-color: #e0e0e0;
+            --heading-color: var(--primary-color);
+            --paragraph-color: #cccccc;
+            --dim-text-color: #888888;
+            --border-color: rgba(173, 255, 47, 0.3); /* GreenYellow variant */
+            --shadow-color: rgba(173, 255, 47, 0.15);
+            --button-text-color: #121212;
+            --button-hover-bg: var(--secondary-color);
+            --button-hover-text: #ffffff;
+        }
+
+        /* Initial states for JS animation */
+        .container, li {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+        }
+
+        body {
+            font-family: 'Orbitron', sans-serif;
+            line-height: 1.7;
+            margin: 0;
+            padding: 2rem;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            background-image: linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px), linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+            background-size: 25px 25px; /* Slightly larger grid */
+        }
+        .container {
+            max-width: 800px;
+            margin: auto;
+            background-color: var(--container-bg-color);
+            padding: 2.5rem 3.5rem; /* Increased padding */
+            border-radius: 12px; /* Slightly more rounded */
+            box-shadow: 0 6px 25px var(--shadow-color); /* Adjusted shadow */
+            border: 1px solid var(--border-color);
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
+        }
+        h1, h2 {
+            color: var(--heading-color);
+            margin-bottom: 1.8rem; /* Increased spacing */
+            text-shadow: 0 0 6px var(--shadow-color);
+        }
+        h1 {
+            text-align: center;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 1.2rem;
+            font-weight: 700;
+            letter-spacing: 2.5px; /* Wider spacing */
+            text-transform: uppercase;
+        }
+        h2 {
+            font-weight: 600; /* Slightly bolder */
+            letter-spacing: 1.5px;
+            border-left: 4px solid var(--primary-color);
+            padding-left: 1rem;
+        }
+        p {
+            margin-bottom: 1.5rem;
+            color: var(--paragraph-color);
+        }
+        ul {
+            list-style: none;
+            padding: 0;
+        }
+        li {
+            background-color: var(--item-bg-color);
+            margin-bottom: 1.8rem;
+            padding: 1.8rem 2.2rem;
+            border-radius: 8px;
+            transition: transform 0.25s ease-in-out, box-shadow 0.25s ease-in-out;
+            border-left: 4px solid var(--primary-color);
+            box-shadow: 0 3px 8px rgba(0,0,0,0.2);
+        }
+        li:hover {
+            transform: scale(1.03) translateX(5px); /* Slightly more movement */
+            box-shadow: 0 8px 20px var(--shadow-color);
+        }
+        li strong {
+            font-size: 1.35em;
+            color: #ffffff; /* White title for list items */
+            display: block;
+            margin-bottom: 0.8rem;
+            font-weight: 600;
+        }
+        li p {
+            margin-bottom: 1.2rem;
+            color: var(--paragraph-color);
+        }
+        a.button-link {
+            display: inline-block;
+            background-color: var(--primary-color);
+            color: var(--button-text-color);
+            padding: 0.7rem 1.4rem;
+            border-radius: 5px;
+            text-decoration: none;
+            transition: background-color 0.2s ease, color 0.2s ease, transform 0.1s ease, box-shadow 0.2s ease;
+            font-weight: 600;
+            box-shadow: 0 3px 7px var(--shadow-color);
+            border: 1px solid transparent;
+        }
+        a.button-link:hover {
+            background-color: var(--button-hover-bg);
+            color: var(--button-hover-text);
+            transform: translateY(-3px);
+            box-shadow: 0 5px 12px rgba(220, 20, 60, 0.3); /* Crimson shadow */
+            border-color: var(--secondary-color);
+        }
+        footer {
+            text-align: center;
+            margin-top: 3rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid var(--border-color);
+            font-size: 0.9em;
+            color: var(--dim-text-color);
+        }
+        footer a {
+            background-color: transparent;
+            color: var(--primary-color);
+            padding: 0.2rem 0.5rem;
+            text-decoration: underline;
+            box-shadow: none;
+            font-weight: 500;
+            transition: color 0.2s ease, background-color 0.2s ease;
+        }
+        footer a:hover {
+            color: var(--secondary-color);
+            background-color: rgba(220, 20, 60, 0.1); /* Faint Crimson background */
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>6AMES AI Coding Challenge</h1>
+
+        <p>Welcome to my 30-day AI coding challenge! Every day for 30 days, I'm building a new game or application primarily using AI tools like OpenAI ChatGPT, Anthropic Claude, Google Gemini, Cursor, Cline, lovable.dev, v0.dev, bolt.new, and others.</p>
+
+        <h2>Daily Projects</h2>
+        <ul>
+            <li>
+                <strong>Day 1: Tic-Tac-Toe 3D</strong>
+                <p>A 3D version of the classic Tic-Tac-Toe game.</p>
+                <a href="/Day1_Tic-Tac-Toe-3D/" class="button-link">Play Game</a>
+            </li>
+            <li>
+                <strong>Day 2: Voxel Editor</strong>
+                <p>A simple editor for creating and manipulating voxel models.</p>
+                <a href="/Day2_Voxel-Editor/" class="button-link">Open Editor</a>
+            </li>
+            <!-- More projects will be added here -->
+        </ul>
+
+        <footer>
+            Follow the progress on <a href="https://github.com/6ames/6ames.github.io" target="_blank" rel="noopener noreferrer">GitHub</a>.
+            <br>
+            <em>(More projects will be added daily)</em>
+        </footer>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const container = document.querySelector('.container');
+            const listItems = document.querySelectorAll('li');
+
+            // Fade in container
+            setTimeout(() => {
+                container.style.opacity = '1';
+                container.style.transform = 'translateY(0)';
+            }, 100); // Small delay
+
+            // Staggered fade-in for list items
+            listItems.forEach((item, index) => {
+                setTimeout(() => {
+                    item.style.opacity = '1';
+                    item.style.transform = 'translateY(0)';
+                }, 300 + index * 150); // Stagger delay
+            });
+        });
+    </script>
+</body>
+</html> 

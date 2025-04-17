@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tic-Tac-Toe 3D</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400..900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Top Bar UI -->
+    <div id="topBar" style="display: none;">
+        <div id="gameTitleText" class="clickable-title" title="Back to Menu">TIC-TAC-TOE</div>
+        <div id="restartIconContainer">
+            <span id="restartIcon" title="Restart Game">↻</span>
+        </div>
+    </div>
+
+    <!-- Game Info UI (Status Only) -->
+    <div id="info" style="display: none;">
+        <div id="status">Player P1's Turn</div>
+    </div>
+
+    <!-- Copyright Notice -->
+    <div id="copyright" style="display: none;">© Sus Pilne</div>
+
+    <!-- WebGL Container -->
+    <div id="container"></div>
+
+    <!-- Start Screen Overlay -->
+    <div id="startScreen" class="overlay">
+        <div class="overlay-content start-screen-content">
+            <h1 class="game-title overlay-title">TIC-TAC-TOE</h1>
+
+            <div class="config-section">
+                 <h3 class="config-title">Game Settings</h3>
+                 <div class="config-options">
+                    <div class="config-group">
+                        <label for="boardSizeSelect" class="config-label">Board Size:</label>
+                        <select id="boardSizeSelect" class="config-select">
+                            <option value="3" selected>3 x 3 x 3</option>
+                            <option value="4">4 x 4 x 4</option>
+                            <option value="5">5 x 5 x 5</option>
+                        </select>
+                    </div>
+                    <div class="config-group">
+                        <label for="playerCountSelect" class="config-label">Players:</label>
+                        <select id="playerCountSelect" class="config-select">
+                            <option value="2" selected>2 (vs Bot)</option>
+                            <option value="2h">2 (Human vs Human)</option>
+                            <option value="3">3 Humans</option>
+                            <option value="4">4 Humans</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <button id="startButton" class="overlay-button start-button">Start Game</button>
+            <div class="instructions-container">
+                <p class="instruction-item">Select options and start.</p>
+                <p class="instruction-item">Click empty spaces to place your mark.</p>
+                <p class="instruction-item">Get N in a row to win (N = board size).</p>
+                <p class="instruction-item">Click & Drag to rotate. Scroll to Zoom.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- End Screen Overlay -->
+    <div id="endScreen" class="overlay" style="display: none;">
+        <div class="overlay-content end-screen-content">
+            <h2 id="endMessage" class="overlay-title">Game Over!</h2>
+            <button id="playAgainButton" class="overlay-button">Play Again</button>
+        </div>
+    </div>
+
+    <!-- Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/EffectComposer.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/RenderPass.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/ShaderPass.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/UnrealBloomPass.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/LuminosityHighPassShader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/CopyShader.js"></script>
+
+    <!-- Game Logic -->
+    <script src="script.js"></script>
+</body>
+</html>

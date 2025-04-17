@@ -1,0 +1,347 @@
+/* --- General & Body --- */
+body {
+  margin: 0;
+  overflow: hidden;
+  background-color: #000;
+  color: #eee;
+  font-family: "Orbitron", sans-serif;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+}
+
+#container {
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 1;
+}
+
+/* --- Top Bar --- */
+#topBar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 50px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 25px; /* Slightly more padding */
+  box-sizing: border-box;
+  z-index: 3;
+}
+
+#gameTitleText {
+  font-size: 1.4em;
+  color: #ccc;
+  text-shadow: 0 0 5px #aaa;
+  font-weight: bold;
+  letter-spacing: 2px;
+  transition: color 0.3s, text-shadow 0.3s;
+}
+#gameTitleText.clickable-title {
+  cursor: pointer;
+}
+#gameTitleText.clickable-title:hover {
+  color: #0ff;
+  text-shadow: 0 0 8px #0ff;
+}
+
+#restartIconContainer {
+}
+
+#restartIcon {
+  font-size: 2em;
+  color: #aaa;
+  cursor: pointer;
+  transition: color 0.3s, text-shadow 0.3s;
+  padding: 5px;
+}
+#restartIcon:hover {
+  color: #0ff;
+  text-shadow: 0 0 8px #0ff;
+}
+
+/* --- Game Status Info (Bottom Right) --- */
+#info {
+  position: absolute;
+  bottom: 15px;
+  right: 15px;
+  left: auto;
+  z-index: 3;
+  background-color: rgba(0, 0, 0, 0.75);
+  padding: 10px 15px;
+  border-radius: 5px;
+  border: 1px solid #555;
+  box-shadow: 0 0 10px rgba(100, 100, 100, 0.4);
+  font-family: "Arial", sans-serif;
+  min-width: 150px;
+  text-align: center;
+}
+
+#status {
+  font-size: 1.1em;
+  margin: 0;
+  font-weight: bold;
+  transition: color 0.4s ease, text-shadow 0.4s ease;
+}
+#status.player-color-0 {
+  color: #00bbf9;
+  text-shadow: 0 0 5px #00bbf9, 0 0 10px #00bbf9;
+}
+#status.player-color-1 {
+  color: #ff595e;
+  text-shadow: 0 0 5px #ff595e, 0 0 10px #ff595e;
+}
+#status.player-color-2 {
+  color: #8ac926;
+  text-shadow: 0 0 5px #8ac926, 0 0 10px #8ac926;
+}
+#status.player-color-3 {
+  color: #8338ec;
+  text-shadow: 0 0 5px #8338ec, 0 0 10px #8338ec;
+}
+
+/* --- Copyright Notice --- */
+#copyright {
+  position: absolute;
+  bottom: 15px;
+  left: 15px;
+  z-index: 3;
+  font-family: "Arial", sans-serif;
+  font-size: 0.75em;
+  color: #555;
+  text-shadow: 0 0 2px #333;
+}
+
+/* --- Overlay Styles (General) --- */
+.overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(
+    circle,
+    rgba(5, 0, 15, 0.9) 0%,
+    rgba(0, 0, 5, 0.98) 100%
+  ); /* Radial gradient */
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  z-index: 2;
+  text-align: center;
+  color: #eee;
+  opacity: 1;
+  visibility: visible;
+  transition: opacity 0.6s ease-out, visibility 0s linear 0s;
+}
+.overlay[style*="display: none"] {
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.6s ease-out, visibility 0s linear 0.6s;
+}
+
+.overlay-content {
+  padding: 35px 45px; /* Adjusted padding */
+  background-color: rgba(15, 15, 35, 0.8); /* Slightly lighter, purple hint */
+  border-radius: 18px; /* More rounded */
+  border: 1px solid rgba(100, 100, 255, 0.4); /* Purple/blue border */
+  box-shadow: 0 0 40px rgba(50, 50, 200, 0.5),
+    inset 0 0 25px rgba(20, 20, 80, 0.6);
+  max-width: 90%;
+  width: fit-content;
+  min-width: 380px; /* Adjusted min-width */
+  animation: fadeInScale 0.7s ease-out forwards;
+}
+@keyframes fadeInScale {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* --- Start Screen Specific --- */
+.start-screen-content {
+}
+
+.overlay-title {
+  color: #0ff;
+  text-shadow: 0 0 10px #0ff, 0 0 20px #0ff, 0 0 30px #0ff;
+  margin-bottom: 30px; /* Increased margin */
+  line-height: 1.2;
+}
+.game-title {
+  font-size: 3.2em; /* Slightly larger */
+}
+
+/* Improved Config Section */
+.config-section {
+  margin-top: 15px;
+  margin-bottom: 35px;
+  padding: 25px 30px; /* More padding */
+  background-color: rgba(0, 0, 0, 0.2); /* Darker, more subtle background */
+  border-radius: 10px;
+  border: 1px solid rgba(0, 255, 255, 0.15);
+  backdrop-filter: blur(2px); /* Subtle blur effect */
+}
+.config-title {
+  font-size: 1.3em;
+  color: #ccc;
+  margin-bottom: 25px; /* More space */
+  text-transform: uppercase;
+  letter-spacing: 1.5px; /* Increased spacing */
+  font-weight: normal;
+  border-bottom: 1px solid rgba(0, 255, 255, 0.25);
+  padding-bottom: 8px; /* More padding */
+}
+.config-options {
+  display: flex;
+  justify-content: center;
+  gap: 35px; /* Increased gap */
+  font-family: "Arial", sans-serif;
+  flex-wrap: wrap;
+}
+.config-group {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 150px; /* Increased min width */
+}
+.config-label {
+  /* Use class for label */
+  margin-bottom: 12px;
+  font-size: 1.05em; /* Slightly larger label */
+  color: #ddd;
+}
+.config-select {
+  /* Use class for select */
+  padding: 12px 18px; /* Larger select padding */
+  font-size: 1em;
+  font-family: "Orbitron", sans-serif;
+  background-color: rgba(15, 15, 30, 0.9); /* Darker background */
+  color: #3cf; /* Lighter cyan */
+  border: 1px solid #0aa;
+  border-radius: 5px; /* More rounded */
+  cursor: pointer;
+  outline: none;
+  width: 100%;
+  text-align: center;
+  transition: all 0.3s ease;
+  appearance: none; /* Remove default arrow */
+  background-image: linear-gradient(45deg, transparent 50%, #0cc 50%),
+    linear-gradient(135deg, #0cc 50%, transparent 50%); /* Custom arrow */
+  background-position: calc(100% - 20px) calc(1em + 2px),
+    calc(100% - 15px) calc(1em + 2px);
+  background-size: 5px 5px, 5px 5px;
+  background-repeat: no-repeat;
+  padding-right: 40px; /* Make space for custom arrow */
+}
+.config-select:hover {
+  border-color: #0ff;
+  background-color: rgba(25, 25, 45, 0.95);
+}
+.config-select:focus {
+  box-shadow: 0 0 12px rgba(0, 200, 255, 0.8);
+  border-color: #0ff;
+}
+
+/* --- End Screen Specific --- */
+.end-screen-content {
+}
+
+#endMessage {
+  font-size: 2.8em;
+  margin-bottom: 35px;
+  transition: color 0.5s ease, text-shadow 0.5s ease;
+}
+#endMessage.winner-0 {
+  color: #00bbf9;
+  text-shadow: 0 0 8px #00bbf9, 0 0 15px #00bbf9, 0 0 25px #00bbf9;
+}
+#endMessage.winner-1 {
+  color: #ff595e;
+  text-shadow: 0 0 8px #ff595e, 0 0 15px #ff595e, 0 0 25px #ff595e;
+}
+#endMessage.winner-2 {
+  color: #8ac926;
+  text-shadow: 0 0 8px #8ac926, 0 0 15px #8ac926, 0 0 25px #8ac926;
+}
+#endMessage.winner-3 {
+  color: #8338ec;
+  text-shadow: 0 0 8px #8338ec, 0 0 15px #8338ec, 0 0 25px #8338ec;
+}
+#endMessage.draw {
+  color: #dddddd;
+  text-shadow: 0 0 8px #ffffff, 0 0 15px #cccccc;
+}
+
+/* --- Shared Button & Instructions --- */
+.overlay-button {
+  padding: 12px 25px;
+  font-size: 1.3em;
+  font-family: "Orbitron", sans-serif;
+  cursor: pointer;
+  background: linear-gradient(rgba(0, 100, 100, 0.7), rgba(0, 150, 150, 0.9));
+  color: #eee;
+  border: 1px solid #0ff;
+  border-radius: 5px;
+  box-shadow: 0 0 12px rgba(0, 255, 255, 0.7),
+    inset 0 0 7px rgba(100, 255, 255, 0.5);
+  transition: all 0.3s ease;
+  margin-top: 15px;
+  min-width: 180px;
+}
+.overlay-button.start-button {
+  margin-top: 5px;
+}
+
+.overlay-button:hover {
+  background: linear-gradient(rgba(0, 150, 150, 0.9), rgba(0, 200, 200, 1));
+  color: #fff;
+  box-shadow: 0 0 25px rgba(0, 255, 255, 1),
+    inset 0 0 10px rgba(150, 255, 255, 0.7);
+  transform: translateY(-2px) scale(1.02);
+}
+
+.instructions-container {
+  margin-top: 35px; /* More space above instructions */
+  padding: 15px 20px;
+  background-color: rgba(0, 0, 0, 0.15); /* Subtle background */
+  border-radius: 8px;
+  border: 1px solid rgba(0, 255, 255, 0.1);
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.instruction-item {
+  font-family: "Arial", sans-serif;
+  color: #ccc; /* Slightly brighter */
+  font-size: 0.95em; /* Slightly larger */
+  line-height: 1.6;
+  margin: 8px 0; /* Space between lines */
+  text-align: left; /* Align text left */
+  padding-left: 10px;
+  position: relative; /* For pseudo-element */
+}
+
+/* Add a subtle bullet point / marker */
+.instruction-item::before {
+  content: "»"; /* Use a different character like '•', '»', '>' */
+  position: absolute;
+  left: -5px;
+  top: -2px; /* Adjust vertical alignment */
+  color: #0ff; /* Marker color */
+  font-size: 1.1em;
+  text-shadow: 0 0 4px #0ff;
+}

@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Voxel Editor</title>
+    <style>
+/* --- CSS Variables --- */
+:root {
+    --panel-bg: rgba(35, 38, 43, 0.88);
+    --header-bg: rgba(50, 53, 58, 0.85);
+    --border-color: #505358;
+    --text-color: #e1e4e8;
+    --text-secondary-color: #9da5b0;
+    --accent-color: #6cb6ff;
+    --button-bg: #444c56;
+    --button-hover-bg: #586069;
+    --button-active-bg: #3d444c;
+    --delete-bg: #d73a49;
+    --delete-hover-bg: #e04c5c;
+    --input-bg: #2a2d31;
+    --input-border: #5a5f66;
+    --disabled-bg: #2a2d31;
+    --disabled-color: #5a5f66;
+    --futuristic-font: 'Orbitron', sans-serif;
+}
+
+body { margin: 0; overflow: hidden; background-color: #1c1c1e; color: var(--text-color); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif; }
+#editor-container { position: relative; width: 100vw; height: 100vh; cursor: default; }
+
+/* --- Panel Base --- */
+#ui-panel {
+    position: absolute; top: 15px; left: 15px;
+    background-color: var(--panel-bg); padding: 0;
+    border-radius: 8px; border: 1px solid var(--border-color);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5); z-index: 10;
+    min-width: 250px; color-scheme: dark; overflow: hidden;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    transition: background-color 0.3s ease;
+}
+
+/* --- Panel Header (Title + Toggle) - REFINED --- */
+#ui-panel-header {
+     position: relative; /* Keep for toggle positioning */
+     display: flex;
+     /* Horizontal centering with justify-content: center */
+     justify-content: center;
+     align-items: center;
+     /* Symmetrical horizontal padding needed for true center */
+     padding: 10px 15px; /* Use same L/R padding */
+     background-color: var(--header-bg);
+     cursor: pointer; border-bottom: 1px solid var(--border-color);
+     user-select: none;
+     /* Allow header to contain the absolutely positioned button */
+     min-height: 24px; /* Ensure space for button */
+}
+ #ui-panel-header h3 {
+     margin: 0; /* Remove any default margin */
+     /* Make sure title doesn't push toggle if too long - Ellipsis might be better */
+     /* text-align: center; */ /* Not needed with flex justify-content */
+     font-family: var(--futuristic-font);
+     font-weight: 500; color: var(--accent-color);
+     font-size: 1.1em;
+     letter-spacing: 1.5px;
+     text-transform: uppercase;
+     line-height: 1.2;
+     white-space: nowrap;
+     text-shadow: 0 0 6px rgba(108, 182, 255, 0.6);
+     /* Ensure title sits naturally in the center, don't force width */
+ }
+
+/* Minimalist Toggle Icon Button - REFINED POSITIONING */
+#ui-panel-toggle {
+    position: absolute; /* Position relative to header */
+    /* Adjust position to be visually centered within padding */
+    top: 50%; right: 12px; /* Fine-tuned right position */
+    transform: translateY(-50%);
+    background: none; border: none;
+    color: var(--text-secondary-color);
+    padding: 5px;
+    cursor: pointer; line-height: 0;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    width: 24px; height: 24px;
+    transition: color 0.2s ease, background-color 0.2s ease;
+}
+#ui-panel-toggle:hover {
+    color: var(--text-color);
+    background-color: rgba(255, 255, 255, 0.1);
+}
+#ui-panel-toggle svg {
+    width: 14px; height: 14px;
+    display: block; fill: currentColor;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+#ui-panel-toggle.collapsed svg {
+    transform: rotate(-90deg);
+}
+
+/* --- Panel Content & Collapse --- */
+#ui-panel-content {
+    padding: 15px 20px 10px 20px;
+    max-height: 500px; overflow-y: auto;
+    transition: max-height 0.35s ease-out, padding 0.35s ease-out, opacity 0.25s ease-out 0.05s;
+    opacity: 1; border-top: none;
+    scrollbar-width: thin; scrollbar-color: var(--button-bg) transparent;
+}
+#ui-panel-content::-webkit-scrollbar { width: 6px; }
+#ui-panel-content::-webkit-scrollbar-track { background: transparent; }
+#ui-panel-content::-webkit-scrollbar-thumb { background-color: var(--button-bg); border-radius: 3px; border: 1px solid var(--panel-bg);}
+#ui-panel-content.collapsed {
+    max-height: 0; padding-top: 0; padding-bottom: 0;
+    opacity: 0; overflow: hidden;
+    transition: max-height 0.35s cubic-bezier(0.4, 0, 0.2, 1), padding 0.35s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.2s ease-in;
+}
+
+/* --- Controls Styling --- */
+#ui-panel .control-group { margin-bottom: 15px; }
+#ui-panel label { display: block; margin-top: 8px; font-size: 0.9em; color: var(--text-secondary-color); font-weight: 500; }
+#ui-panel input[type="color"], #ui-panel input[type="range"] { display: block; width: 100%; box-sizing: border-box; margin-top: 4px; cursor: pointer; border: 1px solid var(--input-border); border-radius: 5px; }
+#ui-panel input[type="color"] { height: 38px; padding: 3px; background-color: var(--input-bg); }
+#ui-panel input[type="range"] { height: 8px; padding: 0; margin-top: 10px; margin-bottom: 10px; appearance: none; background: var(--input-bg); outline: none; border-radius: 4px; border: 1px solid var(--input-border); cursor: pointer; overflow: hidden; }
+#ui-panel input[type="range"]::-webkit-slider-runnable-track { height: 8px; background: var(--input-bg); border-radius: 4px; }
+#ui-panel input[type="range"]::-moz-range-track { height: 8px; background: var(--input-bg); border-radius: 4px; border: none; }
+#ui-panel input[type="range"]::-webkit-slider-thumb { appearance: none; width: 18px; height: 18px; background: var(--accent-color); border-radius: 50%; cursor: pointer; border: 2px solid var(--panel-bg); margin-top: -5px; box-shadow: 0 1px 3px rgba(0,0,0,0.3); transition: background-color 0.2s ease; }
+#ui-panel input[type="range"]::-moz-range-thumb { width: 14px; height: 14px; background: var(--accent-color); border-radius: 50%; cursor: pointer; border: 2px solid var(--panel-bg); box-shadow: 0 1px 3px rgba(0,0,0,0.3); }
+#ui-panel input[type="range"]:hover::-webkit-slider-thumb { background-color: #79c0ff; }
+#ui-panel input[type="range"]:hover::-moz-range-thumb { background-color: #79c0ff; }
+#opacity-value { display: inline-block; font-size: 0.9em; color: var(--text-secondary-color); margin-left: 8px; min-width: 30px; font-variant-numeric: tabular-nums; }
+
+/* --- Buttons General --- */
+#ui-panel button { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; box-sizing: border-box; padding: 9px 12px; margin-top: 10px; background-color: var(--button-bg); color: var(--text-color); border: none; border-radius: 6px; cursor: pointer; font-size: 0.95em; font-weight: 500; transition: background-color 0.2s ease, transform 0.1s ease; }
+#ui-panel button:not(:disabled):hover { background-color: var(--button-hover-bg); }
+#ui-panel button:not(:disabled):active { background-color: var(--button-active-bg); transform: scale(0.98); }
+#ui-panel button svg { width: 16px; height: 16px; fill: currentColor; flex-shrink: 0; }
+
+/* Specific Buttons */
+#ui-panel button.delete-btn { background-color: var(--delete-bg); color: #fff; }
+#ui-panel button.delete-btn:not(:disabled):hover { background-color: var(--delete-hover-bg); }
+#ui-panel button:disabled { background-color: var(--disabled-bg); color: var(--disabled-color); cursor: not-allowed; transform: none; }
+#ui-panel button:disabled svg { fill: var(--disabled-color); }
+#ui-panel button.delete-btn:disabled:hover { background-color: var(--disabled-bg); }
+#ui-panel button.delete-btn:disabled:active { background-color: var(--disabled-bg); transform: none; }
+
+/* --- Export Buttons Layout - REFINED ALIGNMENT --- */
+.export-group {
+    display: flex;
+    align-items: center; /* Primary vertical centering */
+    gap: 12px; /* Slightly increased gap */
+    margin-top: 20px;
+    margin-bottom: 15px;
+}
+.export-group label.export-label {
+    margin: 0; /* Reset margin */
+    flex-shrink: 0;
+    font-size: 0.9em;
+    color: var(--text-secondary-color);
+    font-weight: 500;
+    /* Ensure label height doesn't affect alignment */
+    line-height: 1; /* Or match button line-height if needed */
+}
+.export-buttons {
+    display: flex;
+    align-items: center; /* Align buttons just in case */
+    gap: 10px;
+    flex-grow: 1;
+}
+.export-buttons button {
+    margin-top: 0;
+    flex: 1;
+    /* Ensure button text is centered vertically if needed */
+    /* line-height: normal; Adjust if text/icon aren't centered */
+}
+
+/* --- Import Status --- */
+#import-status { margin-top: 10px; font-style: italic; font-size: 0.85em; color: var(--text-secondary-color); text-align: center; }
+hr { border: none; border-top: 1px solid var(--border-color); margin: 18px -20px; }
+
+    </style>
+</head>
+<body>
+    <!-- Main 3D Editor Container -->
+    <div id="editor-container">
+        <!-- UI Panel -->
+        <div id="ui-panel">
+            <!-- Header: Title + Absolute Toggle -->
+            <div id="ui-panel-header">
+                <h3>VOXEL EDITOR</h3> <!-- Centered via flexbox -->
+                <div id="ui-panel-toggle" title="Toggle Panel">
+                    <!-- SVG Chevron Icon -->
+                    <svg viewBox="0 0 16 16" fill="currentColor">
+                        <path d="M12.78 6.22a.75.75 0 0 1 0 1.06l-4.25 4.25a.75.75 0 0 1-1.06 0L3.22 7.28a.75.75 0 0 1 1.06-1.06L8 9.94l3.72-3.72a.75.75 0 0 1 1.06 0z"></path>
+                    </svg>
+                </div>
+            </div>
+            <!-- Collapsible Content -->
+            <div id="ui-panel-content">
+                <div class="control-group">
+                    <label for="voxel-color">Color</label>
+                    <input type="color" id="voxel-color" value="#808000"> <!-- Example Olive -->
+                </div>
+                <div class="control-group">
+                    <label for="voxel-opacity">Opacity: <span id="opacity-value">0.70</span></label>
+                    <input type="range" id="voxel-opacity" min="0.05" max="1.0" step="0.05" value="0.70">
+                </div>
+                <hr>
+                 <button id="delete-selected-btn" class="delete-btn" disabled>
+                     <svg aria-hidden="true" height="16" viewBox="0 0 16 16" version="1.1" width="16"> <path fill-rule="evenodd" d="M11 1.75V3h-6V1.75a.75.75 0 01.75-.75h4.5a.75.75 0 01.75.75zM10 3V1.75a.75.75 0 00-.75-.75h-4.5A.75.75 0 004 1.75V3H1.75a.75.75 0 000 1.5h.34l.543 8.143a2.75 2.75 0 002.74 2.577h3.244a2.75 2.75 0 002.74-2.577l.543-8.143h.34a.75.75 0 000-1.5H10zM8.75 12.75a.75.75 0 001.5 0V6.75a.75.75 0 00-1.5 0v6zm-3 0a.75.75 0 001.5 0V6.75a.75.75 0 00-1.5 0v6z"></path> </svg>
+                    Delete Selected
+                </button>
+                <hr>
+                <!-- Export Group: Label and Buttons vertically centered -->
+                <div class="control-group export-group">
+                    <label class="export-label">Export:</label>
+                    <div class="export-buttons">
+                        <button id="export-glb-btn">
+                            <svg aria-hidden="true" height="16" viewBox="0 0 16 16" version="1.1" width="16"><path fill-rule="evenodd" d="M7.47 10.78a.75.75 0 001.06 0l3.75-3.75a.75.75 0 00-1.06-1.06L8.75 8.44V1.75a.75.75 0 00-1.5 0v6.69L4.78 5.97a.75.75 0 00-1.06 1.06l3.75 3.75zM3.75 13a.75.75 0 000 1.5h8.5a.75.75 0 000-1.5h-8.5z"></path></svg>
+                            GLB
+                        </button>
+                         <button id="export-gltf-btn">
+                            <svg aria-hidden="true" height="16" viewBox="0 0 16 16" version="1.1" width="16"><path fill-rule="evenodd" d="M7.47 10.78a.75.75 0 001.06 0l3.75-3.75a.75.75 0 00-1.06-1.06L8.75 8.44V1.75a.75.75 0 00-1.5 0v6.69L4.78 5.97a.75.75 0 00-1.06 1.06l3.75 3.75zM3.75 13a.75.75 0 000 1.5h8.5a.75.75 0 000-1.5h-8.5z"></path></svg>
+                            GLTF
+                         </button>
+                    </div>
+                </div>
+                <button id="import-btn">
+                    <svg aria-hidden="true" height="16" viewBox="0 0 16 16" version="1.1" width="16"><path fill-rule="evenodd" d="M4.78 3.22a.75.75 0 010 1.06L1.06 8l3.72 3.72a.75.75 0 11-1.06 1.06L.22 8.53a.75.75 0 010-1.06l3.5-3.5a.75.75 0 011.06 0zM8.25 1.75a.75.75 0 01.75.75v10.5a.75.75 0 01-1.5 0V2.5a.75.75 0 01.75-.75zM11.22 3.22a.75.75 0 011.06 0l3.5 3.5a.75.75 0 010 1.06l-3.5 3.5a.75.75 0 11-1.06-1.06L14.94 8l-3.72-3.72a.75.75 0 010-1.06z"></path></svg>
+                    Import GLB/GLTF
+                </button>
+                <input type="file" id="import-file" accept=".gltf,.glb" style="display: none;">
+                <button id="import-demo-btn">
+                    <svg xmlns="http://www.w3.org/2000/svg" height="16" viewBox="0 0 24 24" width="16" fill="currentColor"><path d="M0 0h24v24H0z" fill="none"/><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z"/></svg>
+                    Load Demo Scene
+                </button>
+                <div id="import-status"></div>
+             </div> <!-- End #ui-panel-content -->
+        </div> <!-- End #ui-panel -->
+    </div> <!-- End #editor-container -->
+
+    <!-- Link to Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500&display=swap" rel="stylesheet">
+
+    <!-- Import Three.js and Addons -->
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://unpkg.com/three@0.162.0/build/three.module.js",
+                "three/addons/": "https://unpkg.com/three@0.162.0/examples/jsm/"
+            }
+        }
+    </script>
+
+    <script type="module">
+        import * as THREE from 'three';
+        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+        import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+        import { GLTFExporter } from 'three/addons/exporters/GLTFExporter.js';
+
+        // --- Configuration ---
+        const VOXEL_SIZE = 1;
+        const GRID_EXTENT = 25;
+        const GRID_DIVISIONS = GRID_EXTENT * 2 / VOXEL_SIZE;
+        const Y_NORMAL_THRESHOLD = 0.95;
+
+        // --- Core Variables ---
+        let scene, camera, renderer, controls;
+        let rollOverMesh, rollOverMaterial;
+        let selectionWireframe, selectionWireframeMaterial;
+        let raycaster, pointer;
+        let voxelGroup;
+        let groundPlane;
+        let objectsToIntersect = [];
+        let selectedVoxel = null;
+        let isShiftDown = false;
+        let isPointerDown = false;
+        let hasDragged = false;
+        let pointerDownStartPos = new THREE.Vector2();
+
+        // --- UI Elements ---
+        const colorInput = document.getElementById('voxel-color');
+        const opacityInput = document.getElementById('voxel-opacity');
+        const opacityValueSpan = document.getElementById('opacity-value');
+        const deleteSelectedBtn = document.getElementById('delete-selected-btn');
+        const panelContent = document.getElementById('ui-panel-content');
+        const panelToggleBtn = document.getElementById('ui-panel-toggle');
+
+        // --- Shared Geometry ---
+        const cubeGeo = new THREE.BoxGeometry(VOXEL_SIZE, VOXEL_SIZE, VOXEL_SIZE);
+
+        // --- Initialization ---
+        function init() {
+            scene = new THREE.Scene(); scene.background = new THREE.Color(0x1a1a1a);
+            camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, GRID_EXTENT * 10);
+            camera.position.set(GRID_EXTENT * 0.8, GRID_EXTENT * 1.2, GRID_EXTENT * 1.8); camera.lookAt(0, 0, 0);
+            const container = document.getElementById('editor-container');
+            renderer = new THREE.WebGLRenderer({ antialias: true }); renderer.setSize(window.innerWidth, window.innerHeight); renderer.setPixelRatio(window.devicePixelRatio); container.appendChild(renderer.domElement);
+            controls = new OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true;
+            controls.dampingFactor = 0.05;
+            controls.minDistance = VOXEL_SIZE * 3;
+            controls.maxDistance = GRID_EXTENT * 8;
+            controls.maxPolarAngle = Math.PI / 2 - 0.01;
+
+            controls.addEventListener('end', () => {
+                if (!isPointerDown) {
+                    hasDragged = false;
+                }
+                updateRollOverHelper();
+                updateSelectionWireframe();
+            });
+            const ambientLight = new THREE.AmbientLight(0xcccccc, 1.0); scene.add(ambientLight);
+            const directionalLight = new THREE.DirectionalLight(0xffffff, 1.5); directionalLight.position.set(1, 0.75, 0.5).normalize(); scene.add(directionalLight);
+            const directionalLight2 = new THREE.DirectionalLight(0xaaaaaa, 0.8); directionalLight2.position.set(-1, 0.5, -0.5).normalize(); scene.add(directionalLight2);
+            const gridHelper = new THREE.GridHelper(GRID_EXTENT * 2, GRID_DIVISIONS, 0x666666, 0x444444); scene.add(gridHelper);
+            const planeGeometry = new THREE.PlaneGeometry(GRID_EXTENT * 2, GRID_EXTENT * 2); planeGeometry.rotateX(- Math.PI / 2);
+            groundPlane = new THREE.Mesh(planeGeometry, new THREE.MeshBasicMaterial({ visible: false, side: THREE.DoubleSide })); groundPlane.name = "GroundPlane"; scene.add(groundPlane); objectsToIntersect.push(groundPlane);
+            raycaster = new THREE.Raycaster(); pointer = new THREE.Vector2();
+            const rollOverGeo = new THREE.BoxGeometry(VOXEL_SIZE, VOXEL_SIZE, VOXEL_SIZE);
+            rollOverMaterial = new THREE.MeshBasicMaterial({ opacity: 0.5, transparent: true });
+            rollOverMesh = new THREE.Mesh(rollOverGeo, rollOverMaterial); rollOverMesh.name = "RollOverHelper"; scene.add(rollOverMesh);
+            const wireframeGeo = new THREE.BoxGeometry(VOXEL_SIZE, VOXEL_SIZE, VOXEL_SIZE);
+            selectionWireframeMaterial = new THREE.MeshBasicMaterial({ color: 0x00ffff, wireframe: true, depthTest: false });
+            selectionWireframe = new THREE.Mesh(wireframeGeo, selectionWireframeMaterial); selectionWireframe.name = "SelectionWireframe"; selectionWireframe.visible = false; selectionWireframe.renderOrder = 1; scene.add(selectionWireframe);
+            voxelGroup = new THREE.Group(); voxelGroup.name = "VoxelGroup"; scene.add(voxelGroup);
+            renderer.domElement.addEventListener('pointermove', onPointerMove); renderer.domElement.addEventListener('pointerdown', onPointerDown);
+            renderer.domElement.addEventListener('pointerup', onPointerUp); renderer.domElement.addEventListener('pointerout', onPointerOut);
+            window.addEventListener('resize', onWindowResize); document.addEventListener('keydown', onDocumentKeyDown); document.addEventListener('keyup', onDocumentKeyUp);
+            colorInput.addEventListener('input', handleUIChange); opacityInput.addEventListener('input', handleUIChange); deleteSelectedBtn.addEventListener('click', deleteSelectedVoxel);
+            document.getElementById('export-glb-btn').addEventListener('click', () => exportScene(true)); document.getElementById('export-gltf-btn').addEventListener('click', () => exportScene(false));
+            document.getElementById('import-btn').addEventListener('click', () => { document.getElementById('import-file').click(); }); document.getElementById('import-file').addEventListener('change', importGLTF);
+            document.getElementById('import-demo-btn').addEventListener('click', loadDemoScene);
+            panelToggleBtn.addEventListener('click', togglePanel); document.getElementById('ui-panel-header').addEventListener('click', togglePanel);
+            updateOpacitySpan(); updateDeleteButtonState(); updateRollOverHelper();
+            animate();
+        }
+
+        // --- Event Handlers ---
+        function onWindowResize() { camera.aspect = window.innerWidth / window.innerHeight; camera.updateProjectionMatrix(); renderer.setSize(window.innerWidth, window.innerHeight); }
+        function getPointerNDC(event) { const rect = renderer.domElement.getBoundingClientRect(); return { x: ((event.clientX - rect.left) / rect.width) * 2 - 1, y: -((event.clientY - rect.top) / rect.height) * 2 + 1 }; }
+
+        function onPointerMove(event) {
+            const currentPointerPos = new THREE.Vector2(event.clientX, event.clientY);
+            pointer.copy(getPointerNDC(event));
+            if (isPointerDown && !hasDragged) { const dragThresholdPx = 5; if (pointerDownStartPos.distanceTo(currentPointerPos) > dragThresholdPx) { hasDragged = true; controls.enabled = true; rollOverMesh.visible = false; selectionWireframe.visible = false; } }
+            if (!hasDragged) { updateRollOverHelper(); if (selectedVoxel) selectionWireframe.visible = true; }
+        }
+        function onPointerDown( event ) { isPointerDown = true; hasDragged = false; pointerDownStartPos.set(event.clientX, event.clientY); controls.enabled = true; }
+
+        function onPointerUp(event) {
+            if (!isPointerDown) return;
+            const wasDragging = hasDragged;
+            isPointerDown = false; hasDragged = false;
+
+            // Prevent actions if clicking on the UI panel itself
+            const uiPanel = document.getElementById('ui-panel');
+            if (uiPanel.contains(event.target)) {
+                controls.enabled = true; // Make sure controls are usable after UI click
+                return;
+            }
+
+
+            if (!wasDragging) {
+                pointer.copy(getPointerNDC(event));
+                raycaster.setFromCamera( pointer, camera );
+                objectsToIntersect = [groundPlane, ...voxelGroup.children];
+                const intersects = raycaster.intersectObjects( objectsToIntersect, false );
+
+                let clickedObject = null; let intersectData = null;
+                if (intersects.length > 0) { for (const hit of intersects) { if (hit.object !== rollOverMesh && hit.object !== selectionWireframe) { clickedObject = hit.object; intersectData = hit; break; } } }
+
+                 if (intersectData) {
+                      const isTopFaceClick = (clickedObject && clickedObject !== groundPlane && intersectData.face && intersectData.face.normal.y > Y_NORMAL_THRESHOLD);
+                      const isOnGroundClick = (clickedObject === groundPlane);
+
+                      if (isShiftDown) {
+                          if (!isOnGroundClick) removeVoxel(clickedObject);
+                      } else if (isTopFaceClick) {
+                          deselectVoxel();
+                          addVoxelAtIntersection(intersectData, clickedObject);
+                      } else if (clickedObject && !isOnGroundClick) {
+                           selectVoxel(clickedObject);
+                      } else { // Includes ground click & side clicks
+                           deselectVoxel();
+                           addVoxelAtIntersection(intersectData, null);
+                      }
+                 } else {
+                      if (!isShiftDown) deselectVoxel();
+                 }
+            }
+             updateRollOverHelper(); updateSelectionWireframe(); controls.enabled = true;
+        }
+
+        function onPointerOut(event) { if (isPointerDown) { isPointerDown = false; hasDragged = false; controls.enabled = true; rollOverMesh.visible = false; selectionWireframe.visible = false;} }
+        function onDocumentKeyDown( event ) { if (event.target !== document.body && event.target.tagName !== 'INPUT') return; if (event.keyCode === 16) isShiftDown = true; else if (event.keyCode === 46 || event.keyCode === 8) { if (selectedVoxel && !event.target.matches('input')) { deleteSelectedVoxel(); event.preventDefault(); } } else if (event.keyCode === 27) { if (selectedVoxel) deselectVoxel(); } }
+        function onDocumentKeyUp( event ) { if (event.keyCode === 16) isShiftDown = false; }
+
+        // --- Voxel & Selection Logic ---
+        function selectVoxel(voxel) { if (!voxel || voxel === groundPlane || voxel === selectedVoxel) return; deselectVoxel(); selectedVoxel = voxel; colorInput.value = selectedVoxel.userData.color || '#ffffff'; opacityInput.value = selectedVoxel.userData.opacity ?? 1.0; updateOpacitySpan(); updateDeleteButtonState(); updateSelectionWireframe(); rollOverMesh.visible = false; }
+        function deselectVoxel() { if (selectedVoxel) { selectedVoxel = null; updateDeleteButtonState(); updateSelectionWireframe(); updateRollOverHelper(); } }
+
+        function addVoxelAtIntersection(intersect, clickedVoxel = null) {
+             const placementPos = new THREE.Vector3();
+             const isStacking = clickedVoxel && intersect.face && intersect.face.normal.y > Y_NORMAL_THRESHOLD;
+             const isOnGround = (intersect.object === groundPlane);
+
+             if (isStacking) {
+                 placementPos.copy(clickedVoxel.position); placementPos.y += VOXEL_SIZE;
+             } else if (isOnGround) {
+                 placementPos.copy( intersect.point ).divideScalar( VOXEL_SIZE ).floor().multiplyScalar( VOXEL_SIZE );
+                 placementPos.y = 0; placementPos.addScalar( VOXEL_SIZE / 2 );
+             } else {
+                 placementPos.copy( intersect.point ).add( intersect.face.normal );
+                 placementPos.divideScalar( VOXEL_SIZE ).floor().multiplyScalar( VOXEL_SIZE ).addScalar( VOXEL_SIZE / 2 );
+             }
+
+             const threshold = 0.01;
+             if (voxelGroup.children.some(v => v.position.distanceTo(placementPos) < threshold)) return;
+
+            const voxelMaterial = new THREE.MeshLambertMaterial(); const color = colorInput.value; const opacity = parseFloat(opacityInput.value); voxelMaterial.color.set(color); voxelMaterial.opacity = opacity; voxelMaterial.transparent = opacity < 1.0; voxelMaterial.needsUpdate = true; voxelMaterial.name = `voxel_mat_${color}_${opacity.toFixed(2)}`;
+            const voxel = new THREE.Mesh(cubeGeo, voxelMaterial); voxel.position.copy(placementPos); voxel.userData.color = color; voxel.userData.opacity = opacity; voxel.name = `voxel_${positionToString(placementPos)}`;
+            voxelGroup.add(voxel); objectsToIntersect.push(voxel);
+        }
+
+        function removeVoxel(object) { if (!object || !object.parent || object === groundPlane) return; const wasSelected = (object === selectedVoxel); const index = objectsToIntersect.indexOf(object); if (index > -1) objectsToIntersect.splice(index, 1); if (object.material?.dispose) object.material.dispose(); voxelGroup.remove(object); if (wasSelected) { selectedVoxel = null; deselectVoxel(); } }
+        function deleteSelectedVoxel() { if (selectedVoxel) removeVoxel(selectedVoxel); }
+        function clearVoxels() { deselectVoxel(); for (let i = voxelGroup.children.length - 1; i >= 0; i--) { removeVoxel(voxelGroup.children[i]); } objectsToIntersect = [groundPlane]; }
+
+        // --- UI Update Logic ---
+        function updateOpacitySpan() { opacityValueSpan.textContent = parseFloat(opacityInput.value).toFixed(2); }
+        function updateDeleteButtonState() { deleteSelectedBtn.disabled = (selectedVoxel === null); }
+
+        function handleUIChange() {
+             updateOpacitySpan();
+             // Update slider background fill based on value
+             const percent = ((opacityInput.value - opacityInput.min) / (opacityInput.max - opacityInput.min)) * 100;
+             opacityInput.style.setProperty('--value-percent', `${percent}%`);
+
+             updateRollOverHelper(); // Update preview color/opacity
+             if (selectedVoxel) { // Apply changes to selected
+                 const newColor = colorInput.value; const newOpacity = parseFloat(opacityInput.value);
+                 selectedVoxel.material.color.set(newColor); selectedVoxel.material.opacity = newOpacity;
+                 selectedVoxel.material.transparent = newOpacity < 1.0; selectedVoxel.material.needsUpdate = true;
+                 selectedVoxel.userData.color = newColor; selectedVoxel.userData.opacity = newOpacity;
+             }
+        }
+        function togglePanel() { panelContent.classList.toggle('collapsed'); panelToggleBtn.classList.toggle('collapsed'); }
+
+        // --- Helper Updates ---
+        function updateRollOverHelper() {
+            const currentPreviewColor = colorInput.value; const currentPreviewOpacity = parseFloat(opacityInput.value);
+            rollOverMaterial.color.set(currentPreviewColor); rollOverMaterial.opacity = currentPreviewOpacity * 0.6; // Preview slightly transparent
+            rollOverMaterial.transparent = currentPreviewOpacity < 1.0; rollOverMaterial.needsUpdate = true;
+
+            if (selectedVoxel || (isPointerDown && hasDragged) || !pointer) { rollOverMesh.visible = false; return; }
+
+            raycaster.setFromCamera(pointer, camera);
+            const intersects = raycaster.intersectObjects( objectsToIntersect, false );
+
+            rollOverMesh.visible = false;
+            if (intersects.length > 0) {
+                  let intersect = null; let clickedVoxel = null;
+                  for (const hit of intersects) { if (hit.object !== rollOverMesh && hit.object !== selectionWireframe) { intersect = hit; clickedVoxel = (hit.object === groundPlane) ? null : hit.object; break; } }
+                 if (intersect?.face) {
+                      const placementPos = new THREE.Vector3();
+                      const isStackingPreview = clickedVoxel && intersect.face.normal.y > Y_NORMAL_THRESHOLD;
+                      const isOnGroundPreview = (intersect.object === groundPlane);
+                      if (isStackingPreview) { placementPos.copy(clickedVoxel.position); placementPos.y += VOXEL_SIZE; }
+                      else if (isOnGroundPreview) { placementPos.copy( intersect.point ).divideScalar( VOXEL_SIZE ).floor().multiplyScalar( VOXEL_SIZE ); placementPos.y = 0; placementPos.addScalar( VOXEL_SIZE / 2 ); }
+                      else { placementPos.copy(intersect.point).add(intersect.face.normal); placementPos.divideScalar(VOXEL_SIZE).floor().multiplyScalar(VOXEL_SIZE).addScalar(VOXEL_SIZE / 2); }
+                      rollOverMesh.position.copy(placementPos); rollOverMesh.visible = true;
+                 }
+             }
+        }
+
+         function updateSelectionWireframe() { selectionWireframe.visible = (selectedVoxel !== null); if (selectedVoxel) { selectionWireframe.position.copy(selectedVoxel.position); } }
+         function positionToString(pos) { return `${pos.x.toFixed(1)}_${pos.y.toFixed(1)}_${pos.z.toFixed(1)}`; }
+
+        // --- Import / Export ---
+        function exportScene(binary = true) { voxelGroup.traverse(child => { if (child.isMesh && child.material) { child.userData.color = `#${child.material.color.getHexString()}`; child.userData.opacity = child.material.opacity; } }); const exporter = new GLTFExporter(); const options = { binary: binary, embedImages: true, onlyVisible: false }; const groupToExport = voxelGroup.clone(true); groupToExport.userData.editorVersion = "2.8_UIPolish"; groupToExport.userData.voxelSize = VOXEL_SIZE; exporter.parse( groupToExport, (result) => exportResult(result, binary), exportError, options ); }
+        function exportResult(result, binary) { const filename = binary ? 'voxel_scene.glb' : 'voxel_scene.gltf'; const statusMsg = `Export successful (${binary ? 'GLB' : 'GLTF'})`; if (binary && result instanceof ArrayBuffer) { saveArrayBuffer(result, filename); } else if (!binary && typeof result === 'object') { saveString(JSON.stringify(result, null, 2), filename); } else { console.error("Exporter unexpected result:", result); setStatus(`Export failed: Unexpected result`); return; } console.log(statusMsg); setStatus(statusMsg, 3000); }
+        function exportError(error) { console.error('GLTF export error', error); setStatus(`Export failed: ${error.message || error}`); }
+        function importGLTF(event) { const file = event.target.files[0]; if (!file) return; const reader = new FileReader(); const loader = new GLTFLoader(); setStatus('Importing...'); reader.onload = (e) => loader.parse(e.target.result, '', importSuccess, importError); reader.onerror = importReaderError; reader.readAsArrayBuffer(file); event.target.value = ''; }
+        function importSuccess(gltf) { clearVoxels(); let importedScene = gltf.scene; if (importedScene.userData.voxelSize && importedScene.userData.voxelSize !== VOXEL_SIZE) { console.warn(`Imported scene voxel size ${importedScene.userData.voxelSize} differs from editor size ${VOXEL_SIZE}.`); } importedScene.traverse((child) => { if (child.isMesh && child.geometry) { const worldPos = new THREE.Vector3(); child.getWorldPosition(worldPos); const worldRot = new THREE.Quaternion(); child.getWorldQuaternion(worldRot); const mat = new THREE.MeshLambertMaterial(); let color = '#ffffff'; let opacity = 1.0; if (child.userData.color !== undefined) color = child.userData.color; else if (child.material?.color) color = `#${child.material.color.getHexString()}`; if (child.userData.opacity !== undefined) opacity = child.userData.opacity; else if (child.material) opacity = child.material.opacity ?? 1.0; mat.color.set(color); mat.opacity = opacity; mat.transparent = opacity < 1.0; mat.needsUpdate = true; mat.name = `voxel_mat_${color}_${opacity.toFixed(2)}`; const newVoxel = new THREE.Mesh(cubeGeo, mat); newVoxel.position.copy(worldPos); newVoxel.quaternion.copy(worldRot); newVoxel.position.divideScalar( VOXEL_SIZE ).floor().multiplyScalar( VOXEL_SIZE ).addScalar( VOXEL_SIZE / 2 ); newVoxel.userData.color = color; newVoxel.userData.opacity = opacity; newVoxel.name = `voxel_${positionToString(newVoxel.position)}`; voxelGroup.add(newVoxel); objectsToIntersect.push(newVoxel); } }); console.log("Import successful"); setStatus('Import successful!', 3000); updateRollOverHelper(); } // Update helper after import
+        function importError(error) { console.error('GLTF loading error', error); setStatus(`Import failed: ${error.message || error}`); }
+        function importReaderError(e) { console.error("FileReader error:", e); setStatus('Error reading file.'); }
+        function setStatus(message, duration = 0) { const statusDiv = document.getElementById('import-status'); statusDiv.textContent = message; if (duration > 0) { setTimeout(() => statusDiv.textContent = '', duration); } }
+
+        // --- Load Demo Scene ---
+        function loadDemoScene() {
+            const demoFilePath = 'fy_pool_day.gltf'; // Path to your demo file
+            const loader = new GLTFLoader();
+            setStatus('Loading Demo Scene...');
+            loader.load(
+                demoFilePath,
+                importSuccess, // Reuse existing success handler
+                undefined, // No progress handler needed for this simple case
+                (error) => { // Custom error handler for demo scene
+                    console.error(`Error loading demo scene "${demoFilePath}"`, error);
+                    setStatus(`Error loading demo scene: ${error.message || 'File not found or invalid format'}`);
+                }
+            );
+        }
+
+        // --- Helper Functions for Saving Files ---
+        const link = document.createElement('a'); link.style.display = 'none'; document.body.appendChild(link);
+        function save(blob, filename) { link.href = URL.createObjectURL(blob); link.download = filename; link.click(); URL.revokeObjectURL(link.href); }
+        function saveString(text, filename) { save(new Blob([text], { type: 'application/json' }), filename); }
+        function saveArrayBuffer(buffer, filename) { save(new Blob([buffer], { type: 'application/octet-stream' }), filename); }
+
+        // --- Animation Loop ---
+        function animate() { requestAnimationFrame(animate); controls.update(); renderer.render(scene, camera); }
+
+        // --- Start ---
+        init();
+        // Update slider fill initially
+        handleUIChange();
+
+    </script>
+</body>
+</html>
